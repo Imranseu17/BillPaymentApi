@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ public class BillingController {
 
 
     @GetMapping(value = "/secured/singleBillInformation/{username}/{password}/{billNumber}")
-    public BillingInformation findOneBillInformation(
+    public Object findOneBillInformation(
             @PathVariable("billNumber") String billNumber,
             @PathVariable("username") String username, @PathVariable("password") String password){
 
@@ -56,7 +57,9 @@ public class BillingController {
         }
 
 
-        return  null;
+        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
+                "username or password  is wrong and it is not stakeholder_api user");
+        return unSuccessJsonType;
     }
 
 
@@ -119,13 +122,13 @@ public class BillingController {
         }
 
         JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username , password  is wrong");
+                "username or password  is wrong and it is not stakeholder_api user");
         return unSuccessJsonType;
     }
 
 
     @GetMapping(value = "/secured/unpaidAllBillInformation/{username}/{password}/{customerNumber}")
-    public List<BillingInformation> findAllUnpaidBillInformation(@PathVariable("customerNumber")
+    public List<Object> findAllUnpaidBillInformation(@PathVariable("customerNumber")
                                                                       String customerNumber,
                                                                  @PathVariable("username") String username,
                                                                  @PathVariable("password") String password) {
@@ -155,16 +158,18 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(password,users.getPassword())){
-                    return billingInformationUnpaidList;
+                    return Collections.singletonList(billingInformationUnpaidList);
                 }
             }
         }
 
-        return null;
+        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
+                "username or password  is wrong and it is not stakeholder_api user");
+        return Collections.singletonList(unSuccessJsonType);
     }
 
     @PostMapping("/secured/cancelBillInformation/")
-    public JsonType updateBillInformation(
+    public JsonType cancelBillInformation(
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("billNumber") String billNumber,
@@ -217,12 +222,12 @@ public class BillingController {
         }
 
         JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username , password  is wrong");
+                "username or password  is wrong and it is not stakeholder_api user");
         return unSuccessJsonType;
     }
 
     @GetMapping(value = "/secured/currentDateBillInformation/{username}/{password}")
-    public List<BillingInformation> findOneBillInformation(
+    public List<Object> findAllCurrentDateBillInformation(
             @PathVariable("username") String username, @PathVariable("password") String password){
 
 
@@ -231,13 +236,15 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(password,users.getPassword())){
-                    return billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now()));
+                    return Collections.singletonList(billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now())));
                 }
             }
         }
 
 
-        return  null;
+        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
+                "username or password  is wrong and it is not stakeholder_api user");
+        return Collections.singletonList(unSuccessJsonType);
     }
 
 
