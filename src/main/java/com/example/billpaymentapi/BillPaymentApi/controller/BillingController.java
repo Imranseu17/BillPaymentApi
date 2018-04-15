@@ -44,7 +44,8 @@ public class BillingController {
             @PathVariable("username") String username, @PathVariable("password") String password){
 
 
-        Users users = usersRepository.findByUserName(username);
+
+        Users  users = usersRepository.findByUserName(username);
         Set<Roles> rolesSet =  users.getRolesSet();
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
@@ -55,7 +56,7 @@ public class BillingController {
         }
 
 
-           return  null;
+        return  null;
     }
 
 
