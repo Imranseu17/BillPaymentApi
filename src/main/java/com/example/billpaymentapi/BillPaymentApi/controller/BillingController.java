@@ -39,10 +39,10 @@ public class BillingController {
     }
 
 
-    @GetMapping(value = "/secured/singleBillInformation/{username}/{password}/{billNumber}")
+    @PostMapping(value = "/secured/singleBillInformation/")
     public Object findOneBillInformation(
-            @PathVariable("billNumber") String billNumber,
-            @PathVariable("username") String username, @PathVariable("password") String password){
+            @RequestParam("billNumber") String billNumber,
+            @RequestParam("username") String username, @RequestParam("password") String password){
 
 
 
@@ -127,11 +127,11 @@ public class BillingController {
     }
 
 
-    @GetMapping(value = "/secured/unpaidAllBillInformation/{username}/{password}/{customerNumber}")
-    public List<Object> findAllUnpaidBillInformation(@PathVariable("customerNumber")
+    @PostMapping(value = "/secured/unpaidAllBillInformation/")
+    public List<Object> findAllUnpaidBillInformation(@RequestParam("customerNumber")
                                                                       String customerNumber,
-                                                                 @PathVariable("username") String username,
-                                                                 @PathVariable("password") String password) {
+                                                                 @RequestParam("username") String username,
+                                                                 @RequestParam("password") String password) {
 
         List<BillingInformation> billingInformationUnpaidList = new ArrayList<>();
 
@@ -226,9 +226,9 @@ public class BillingController {
         return unSuccessJsonType;
     }
 
-    @GetMapping(value = "/secured/currentDateBillInformation/{username}/{password}")
+    @PostMapping(value = "/secured/currentDateBillInformation/")
     public List<Object> findAllCurrentDateBillInformation(
-            @PathVariable("username") String username, @PathVariable("password") String password){
+            @RequestParam("username") String username, @RequestParam("password") String password){
 
 
         Users  users = usersRepository.findByUserName(username);
