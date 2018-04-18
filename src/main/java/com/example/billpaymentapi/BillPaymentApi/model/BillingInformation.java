@@ -1,7 +1,12 @@
 package com.example.billpaymentapi.BillPaymentApi.model;
 
+import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+
 import javax.persistence.*;
 import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bill_info")
@@ -9,51 +14,63 @@ public class BillingInformation {
     @Id
     @GeneratedValue
     private int id;
-    @Column(name = "customer_number")
     private String customerNumber;
-    @Column(name = "bill_number")
     private String billNumber;
-    private String utility_trnxn_id;
-    private String bank_trnxn_id;
+    @Column(name = "utility_trnxn_id")
+    private String utilityTrnxnID;
+    @Column(name = "bank_tranxn_id")
+    private String bankTranxnID;
     private int billType;
-    @Column(name = "issueDate")
-    private Date issueDate;
-    private float bill_amount;
-    private float vat_amount;
-    private float total_amount;
-    private float paid_amount;
-    private Date pay_date;
-    private String paid_by;
-    private float due_amount;
-    private Date due_date;
-
-    @Column(name = "bill_status")
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    private LocalDateTime issueDate;
+    private float billAmount;
+    private float vatAmount;
+    private float totalAmount;
+    private float paidAmount;
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    private LocalDateTime payDate;
+    private String paidBy;
+    private float dueAmount;
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    private LocalDateTime due_date;
+    @Column(name = "tran_id")
+    private String tranID;
+    private String ackStatus;
     @Enumerated(EnumType.ORDINAL)
-    private BillingStatus billingStatus;
+    private BillingStatus billStatus;
 
     private String cancelled_by;
-    private Date cancel_date;
+
+    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
+    private LocalDateTime cancelDate;
     private String remarks;
 
-    public BillingInformation(String customerNumber, String billNumber, String utility_trnxn_id, String bank_trnxn_id, int billType, Date issueDate, float bill_amount, float vat_amount, float total_amount, float paid_amount, Date pay_date, String paid_by, float due_amount, Date due_date,
-                              BillingStatus billingStatus, String cancelled_by, Date cancel_date, String remarks) {
+    @OneToOne
+    @JoinColumn(name = "stakeholderID")
+    private StakeHolderInfo stakeHolderInfo;
+
+
+
+    public BillingInformation(String customerNumber, String billNumber, String utilityTrnxnID, String bankTranxnID, int billType, LocalDateTime issueDate, float billAmount, float vatAmount, float totalAmount, float paidAmount, LocalDateTime payDate, String paidBy, float dueAmount, LocalDateTime due_date, String tranID, String ackStatus, BillingStatus billingStatus, String cancelled_by, LocalDateTime cancelDate, String remarks) {
         this.customerNumber = customerNumber;
         this.billNumber = billNumber;
-        this.utility_trnxn_id = utility_trnxn_id;
-        this.bank_trnxn_id = bank_trnxn_id;
+        this.utilityTrnxnID = utilityTrnxnID;
+        this.bankTranxnID = bankTranxnID;
         this.billType = billType;
         this.issueDate = issueDate;
-        this.bill_amount = bill_amount;
-        this.vat_amount = vat_amount;
-        this.total_amount = total_amount;
-        this.paid_amount = paid_amount;
-        this.pay_date = pay_date;
-        this.paid_by = paid_by;
-        this.due_amount = due_amount;
+        this.billAmount = billAmount;
+        this.vatAmount = vatAmount;
+        this.totalAmount = totalAmount;
+        this.paidAmount = paidAmount;
+        this.payDate = payDate;
+        this.paidBy = paidBy;
+        this.dueAmount = dueAmount;
         this.due_date = due_date;
-        this.billingStatus = billingStatus;
+        this.tranID = tranID;
+        this.ackStatus = ackStatus;
+        this.billStatus = billingStatus;
         this.cancelled_by = cancelled_by;
-        this.cancel_date = cancel_date;
+        this.cancelDate = cancelDate;
         this.remarks = remarks;
     }
 
@@ -84,20 +101,36 @@ public class BillingInformation {
         this.billNumber = billNumber;
     }
 
-    public String getUtility_trnxn_id() {
-        return utility_trnxn_id;
+    public BillingStatus getBillStatus() {
+        return billStatus;
     }
 
-    public void setUtility_trnxn_id(String utility_trnxn_id) {
-        this.utility_trnxn_id = utility_trnxn_id;
+    public void setBillStatus(BillingStatus billStatus) {
+        this.billStatus = billStatus;
     }
 
-    public String getBank_trnxn_id() {
-        return bank_trnxn_id;
+    public StakeHolderInfo getStakeHolderInfo() {
+        return stakeHolderInfo;
     }
 
-    public void setBank_trnxn_id(String bank_trnxn_id) {
-        this.bank_trnxn_id = bank_trnxn_id;
+    public void setStakeHolderInfo(StakeHolderInfo stakeHolderInfo) {
+        this.stakeHolderInfo = stakeHolderInfo;
+    }
+
+    public String getUtilityTrnxnID() {
+        return utilityTrnxnID;
+    }
+
+    public void setUtilityTrnxnID(String utilityTrnxnID) {
+        this.utilityTrnxnID = utilityTrnxnID;
+    }
+
+    public String getBankTranxnID() {
+        return bankTranxnID;
+    }
+
+    public void setBankTranxnID(String bankTranxnID) {
+        this.bankTranxnID = bankTranxnID;
     }
 
     public int getBillType() {
@@ -108,84 +141,100 @@ public class BillingInformation {
         this.billType = billType;
     }
 
-    public Date getIssueDate() {
+    public LocalDateTime getIssueDate() {
         return issueDate;
     }
 
-    public void setIssueDate(Date issueDate) {
+    public void setIssueDate(LocalDateTime issueDate) {
         this.issueDate = issueDate;
     }
 
-    public float getBill_amount() {
-        return bill_amount;
+    public float getBillAmount() {
+        return billAmount;
     }
 
-    public void setBill_amount(float bill_amount) {
-        this.bill_amount = bill_amount;
+    public void setBillAmount(float billAmount) {
+        this.billAmount = billAmount;
     }
 
-    public float getVat_amount() {
-        return vat_amount;
+    public float getVatAmount() {
+        return vatAmount;
     }
 
-    public void setVat_amount(float vat_amount) {
-        this.vat_amount = vat_amount;
+    public void setVatAmount(float vatAmount) {
+        this.vatAmount = vatAmount;
     }
 
-    public float getTotal_amount() {
-        return total_amount;
+    public float getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setTotal_amount(float total_amount) {
-        this.total_amount = total_amount;
+    public void setTotalAmount(float totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
-    public float getPaid_amount() {
-        return paid_amount;
+    public float getPaidAmount() {
+        return paidAmount;
     }
 
-    public void setPaid_amount(float paid_amount) {
-        this.paid_amount = paid_amount;
+    public void setPaidAmount(float paidAmount) {
+        this.paidAmount = paidAmount;
     }
 
-    public Date getPay_date() {
-        return pay_date;
+    public LocalDateTime getPayDate() {
+        return payDate;
     }
 
-    public void setPay_date(Date pay_date) {
-        this.pay_date = pay_date;
+    public void setPayDate(LocalDateTime payDate) {
+        this.payDate = payDate;
     }
 
-    public String getPaid_by() {
-        return paid_by;
+    public String getPaidBy() {
+        return paidBy;
     }
 
-    public void setPaid_by(String paid_by) {
-        this.paid_by = paid_by;
+    public void setPaidBy(String paidBy) {
+        this.paidBy = paidBy;
     }
 
-    public float getDue_amount() {
-        return due_amount;
+    public float getDueAmount() {
+        return dueAmount;
     }
 
-    public void setDue_amount(float due_amount) {
-        this.due_amount = due_amount;
+    public void setDueAmount(float dueAmount) {
+        this.dueAmount = dueAmount;
     }
 
-    public Date getDue_date() {
+    public LocalDateTime getDue_date() {
         return due_date;
     }
 
-    public void setDue_date(Date due_date) {
+    public void setDue_date(LocalDateTime due_date) {
         this.due_date = due_date;
     }
 
+    public String getTranID() {
+        return tranID;
+    }
+
+    public void setTranID(String tranID) {
+        this.tranID = tranID;
+    }
+
+    public String getAckStatus() {
+        return ackStatus;
+    }
+
+    public void setAckStatus(String ackStatus) {
+        this.ackStatus = ackStatus;
+    }
+
     public BillingStatus getBillingStatus() {
-        return billingStatus;
+        return billStatus;
     }
 
     public void setBillingStatus(BillingStatus billingStatus) {
-        this.billingStatus = billingStatus;
+        this.billStatus = billingStatus;
     }
 
     public String getCancelled_by() {
@@ -196,12 +245,12 @@ public class BillingInformation {
         this.cancelled_by = cancelled_by;
     }
 
-    public Date getCancel_date() {
-        return cancel_date;
+    public LocalDateTime getCancelDate() {
+        return cancelDate;
     }
 
-    public void setCancel_date(Date cancel_date) {
-        this.cancel_date = cancel_date;
+    public void setCancelDate(LocalDateTime cancelDate) {
+        this.cancelDate = cancelDate;
     }
 
     public String getRemarks() {
@@ -218,21 +267,23 @@ public class BillingInformation {
                 "id=" + id +
                 ", customerNumber='" + customerNumber + '\'' +
                 ", billNumber='" + billNumber + '\'' +
-                ", utility_trnxn_id='" + utility_trnxn_id + '\'' +
-                ", bank_trnxn_id='" + bank_trnxn_id + '\'' +
+                ", utilityTrnxnID='" + utilityTrnxnID + '\'' +
+                ", bankTranxnID='" + bankTranxnID + '\'' +
                 ", billType=" + billType +
                 ", issueDate=" + issueDate +
-                ", bill_amount=" + bill_amount +
-                ", vat_amount=" + vat_amount +
-                ", total_amount=" + total_amount +
-                ", paid_amount=" + paid_amount +
-                ", pay_date=" + pay_date +
-                ", paid_by='" + paid_by + '\'' +
-                ", due_amount=" + due_amount +
+                ", billAmount=" + billAmount +
+                ", vatAmount=" + vatAmount +
+                ", totalAmount=" + totalAmount +
+                ", paidAmount=" + paidAmount +
+                ", payDate=" + payDate +
+                ", paidBy='" + paidBy + '\'' +
+                ", dueAmount=" + dueAmount +
                 ", due_date=" + due_date +
-                ", billingStatus=" + billingStatus +
+                ", tranID='" + tranID + '\'' +
+                ", ackStatus='" + ackStatus + '\'' +
+                ", billingStatus=" + billStatus +
                 ", cancelled_by='" + cancelled_by + '\'' +
-                ", cancel_date=" + cancel_date +
+                ", cancelDate=" + cancelDate +
                 ", remarks='" + remarks + '\'' +
                 '}';
     }

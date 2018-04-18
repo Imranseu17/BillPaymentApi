@@ -14,6 +14,8 @@ public interface BillingRepository extends JpaRepository<BillingInformation, Int
 
     List<BillingInformation> findAllByIssueDate(Date date);
 
+    BillingInformation findByBankTranxnIDAndTranID(String bankTranxnID,String tranID);
+
 
 
 

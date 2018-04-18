@@ -26,8 +26,9 @@ public class Users {
     @Column(name = "is_stakeholder_user")
     private boolean isStakeholderUser;
 
-    @Column(name = "stakeholder_id")
-    private  int stakeholderID;
+    @OneToOne
+    @JoinColumn(name = "stakeholder_id")
+    private StakeHolderInfo stakeholderID;
 
     @Column(name = "created_by")
     private String createdBy;
@@ -49,24 +50,23 @@ public class Users {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Roles> rolesSet = new HashSet<>();
 
+    public Users(String name, String userName, String password, boolean isStakeholderUser, StakeHolderInfo stakeholderID, String createdBy, Date createdTime, String updatedBy, Date updatedTime, int status, Set<Roles> rolesSet) {
+        this.name = name;
+        this.userName = userName;
+        this.password = password;
+        this.isStakeholderUser = isStakeholderUser;
+        this.stakeholderID = stakeholderID;
+        this.createdBy = createdBy;
+        this.createdTime = createdTime;
+        this.updatedBy = updatedBy;
+        this.updatedTime = updatedTime;
+        this.status = status;
+        this.rolesSet = rolesSet;
+    }
+
     public Users() {
     }
 
-    public Users(Users users){
-
-        this.id = users.getId();
-        this.name = users.getName();
-        this.userName = users.getUserName();
-        this.password = users.getPassword();
-        this.isStakeholderUser = users.isStakeholderUser();
-        this.stakeholderID = users.getStakeholderID();
-        this.createdBy = users.getCreatedBy();
-        this.createdTime = users.getCreatedTime();
-        this.updatedBy = users.getUpdatedBy();
-        this.updatedTime = users.getUpdatedTime();
-        this.status = users.getStatus();
-        this.rolesSet = users.getRolesSet();
-    }
 
     public int getId() {
         return id;
@@ -88,8 +88,8 @@ public class Users {
         return userName;
     }
 
-    public void setUsername(String username) {
-        this.userName = username;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPassword() {
@@ -108,11 +108,11 @@ public class Users {
         isStakeholderUser = stakeholderUser;
     }
 
-    public int getStakeholderID() {
+    public StakeHolderInfo getStakeholderID() {
         return stakeholderID;
     }
 
-    public void setStakeholderID(int stakeholderID) {
+    public void setStakeholderID(StakeHolderInfo stakeholderID) {
         this.stakeholderID = stakeholderID;
     }
 
