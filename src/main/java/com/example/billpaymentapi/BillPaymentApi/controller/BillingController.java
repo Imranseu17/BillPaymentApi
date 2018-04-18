@@ -36,6 +36,11 @@ public class BillingController {
     @Autowired
     StakeholderRepository stakeholderRepository;
 
+    Float totalAmount = 0.0f;
+    Float totalSuccessAmount = 0.0f;
+    Float totalFailedAmount = 0.0f;
+
+    int totalCount,totalSuccessCount,totalFailedCount;
 
 
 
@@ -56,7 +61,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     return billingRepository.findByBillNumber(data.getData().getParameters().getBillNumber());
                 }
             }
@@ -77,7 +83,7 @@ public class BillingController {
 
         BillingInformation billingInformation = billingRepository.
                 findByBillNumber(data.getData().getParameters().getBillNumber());
-        Float paidAmount = billingInformation.getPaidAmount();
+        Float paidAmount = data.getData().getParameters().getBillAmount();
         String bankTranID = data.getData().getParameters().getTranID();
         String tranxID = billingInformation.getTranID();
         Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
@@ -85,27 +91,27 @@ public class BillingController {
 
         try {
 
-            Float newAmount = paidAmount + data.getData().getParameters().getBillAmount();
-            Float bill_amount = billingInformation.getBillAmount();
-            Float vat_amount = billingInformation.getVatAmount();
-            Float totalAmount = bill_amount+vat_amount;
-            Float due_amount = totalAmount - newAmount;
+
+
+            Float totalAmount = billingInformation.getTotalAmount();
+            Float due_amount = totalAmount - paidAmount;
 
 
 
-            if (newAmount >= totalAmount)
-                billingInformation.setBillingStatus(BillingStatus.paid);
-            else
-                billingInformation.setBillingStatus(BillingStatus.pending);
 
-            billingInformation.setPaidAmount(newAmount);
+
+            billingInformation.setPaidAmount(paidAmount);
             billingInformation.setTotalAmount(totalAmount);
             billingInformation.setDueAmount(due_amount);
             billingInformation.setPayDate(LocalDateTime.now());
             billingInformation.setPaidBy(data.getData().getAccess_info().getUsername());
             billingInformation.setBankTranxnID(data.getData().getParameters().getTranID());
             billingInformation.setStakeHolderInfo(stakeHolderInfo);
+            billingInformation.setBillingStatus(BillingStatus.paid);
             billingRepository.save(billingInformation);
+
+
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,7 +130,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     return jsonType;
                 }
             }
@@ -147,14 +154,11 @@ public class BillingController {
 
         for (BillingInformation billInfo : billingInformationList) {
 
-            if (billInfo.getBillingStatus().getMeaning().equals("pending")) {
+            if (!billInfo.getBillingStatus().getMeaning().equals("paid")) {
                 billingInformationUnpaidList.add(billInfo);
             }
 
-            if (billInfo.getBillingStatus().getMeaning().equals("due")) {
 
-                billingInformationUnpaidList.add(billInfo);
-            }
         }
 
 
@@ -164,7 +168,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     return Collections.singletonList(billingInformationUnpaidList);
                 }
             }
@@ -218,7 +223,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     return jsonType;
                 }
             }
@@ -239,7 +245,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     return Collections.singletonList(billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now())));
                 }
             }
@@ -261,7 +268,8 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                  BillingInformation billingInformation =
                          billingRepository.findByBankTranxnIDAndTranID(
                                  data.getData().getParameters().getBankTranxnID(),
@@ -308,14 +316,15 @@ public class BillingController {
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())) {
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
                     {
                         if (minutesBetween >= 15 &&
                                 billingInformation.getAckStatus().equals("Processing"))
                             billingInformation.setAckStatus("Call back sent");
                         billingRepository.save(billingInformation);
-                        JsonType successJsonType = new JsonType("Successful",
-                                "it is done");
+                        JsonOneData successJsonType = new JsonOneData(
+                                "call Back send to client");
                         return successJsonType;
                     }
 
@@ -338,12 +347,82 @@ public class BillingController {
 
         Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
         Set<Roles> rolesSet =  users.getRolesSet();
+        List<BillingInformation> billingInformationSuccessList;
+        List<BillingInformation> billingInformationFailedList ;
         for(Roles r: rolesSet){
             if(r.getTitle().equals("stakeholder_api")){
                 if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())){
+                        users.getPassword())&&
+                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
                     if(data.getData().getParameters().getType().equals("summary")){
+                      List<BillingInformation>   billingInformationList =
+                                billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
+                     totalCount = billingInformationList.size();
 
+
+                      for(BillingInformation billingInformation:billingInformationList){
+                           totalAmount += billingInformation.getTotalAmount();
+                      }
+
+                    billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
+                            data.getData().getParameters().getDateTime(),BillingStatus.paid);
+
+                  totalSuccessCount =     billingInformationSuccessList.size();
+
+                   for (BillingInformation billingInformation:billingInformationSuccessList)  {
+                       totalSuccessAmount += billingInformation.getPaidAmount();
+                   }
+
+                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
+                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
+
+                        totalFailedCount =     billingInformationFailedList.size();
+
+                        for (BillingInformation billingInformation:billingInformationFailedList)  {
+                            totalFailedAmount += billingInformation.getTotalAmount();
+                        }
+
+
+
+                        JsonSummary summary = new JsonSummary(totalCount,totalAmount,
+                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
+                                totalFailedAmount);
+                      return  summary;
+                    }
+                    if(data.getData().getParameters().getType().equals("details")){
+                        List<BillingInformation>   billingInformationList =
+                                billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
+                        totalCount = billingInformationList.size();
+
+
+                        for(BillingInformation billingInformation:billingInformationList){
+                            totalAmount += billingInformation.getTotalAmount();
+                        }
+
+                        billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
+                                data.getData().getParameters().getDateTime(),BillingStatus.paid);
+
+                        totalSuccessCount =     billingInformationSuccessList.size();
+
+                        for (BillingInformation billingInformation:billingInformationSuccessList)  {
+                            totalSuccessAmount += billingInformation.getPaidAmount();
+                        }
+
+                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
+                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
+
+                        totalFailedCount =     billingInformationFailedList.size();
+
+                        for (BillingInformation billingInformation:billingInformationFailedList)  {
+                            totalFailedAmount += billingInformation.getTotalAmount();
+                        }
+
+
+
+                        JsonDetails details = new JsonDetails(totalCount,totalAmount,
+                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
+                                totalFailedAmount,billingInformationList);
+                        return  details;
                     }
                 }
             }

@@ -1,6 +1,7 @@
 package com.example.billpaymentapi.BillPaymentApi.model;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class parameters {
 
@@ -12,7 +13,7 @@ public class parameters {
     private String customerNumber;
     private String cancelRemarks;
     private String bankTranxnID;
-    private LocalDateTime dateTime;
+    private Date dateTime;
     private String type;
 
     public parameters() {
@@ -66,11 +67,11 @@ public class parameters {
         this.bankTranxnID = bankTranxnID;
     }
 
-    public LocalDateTime getDateTime() {
+    public Date getDateTime() {
         return dateTime;
     }
 
-    public void setDateTime(LocalDateTime dateTime) {
+    public void setDateTime(Date dateTime) {
         this.dateTime = dateTime;
     }
 

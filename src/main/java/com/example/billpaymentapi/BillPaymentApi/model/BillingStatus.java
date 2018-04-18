@@ -9,7 +9,8 @@ public enum BillingStatus {
     pending(1, "pending"),
     paid(2, "paid"),
     due(3, "due"),
-    cancelled(4, "cancelled");
+    cancelled(4, "cancelled"),
+    Failed(5,"Failed");
 
 
     String meaning;

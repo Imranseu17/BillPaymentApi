@@ -21,8 +21,7 @@ public class BillingInformation {
     @Column(name = "bank_tranxn_id")
     private String bankTranxnID;
     private int billType;
-    @Convert(converter = Jsr310JpaConverters.LocalDateTimeConverter.class)
-    private LocalDateTime issueDate;
+    private Date issueDate;
     private float billAmount;
     private float vatAmount;
     private float totalAmount;
@@ -51,7 +50,7 @@ public class BillingInformation {
 
 
 
-    public BillingInformation(String customerNumber, String billNumber, String utilityTrnxnID, String bankTranxnID, int billType, LocalDateTime issueDate, float billAmount, float vatAmount, float totalAmount, float paidAmount, LocalDateTime payDate, String paidBy, float dueAmount, LocalDateTime due_date, String tranID, String ackStatus, BillingStatus billingStatus, String cancelled_by, LocalDateTime cancelDate, String remarks) {
+    public BillingInformation(String customerNumber, String billNumber, String utilityTrnxnID, String bankTranxnID, int billType, Date issueDate, float billAmount, float vatAmount, float totalAmount, float paidAmount, LocalDateTime payDate, String paidBy, float dueAmount, LocalDateTime due_date, String tranID, String ackStatus, BillingStatus billingStatus, String cancelled_by, LocalDateTime cancelDate, String remarks) {
         this.customerNumber = customerNumber;
         this.billNumber = billNumber;
         this.utilityTrnxnID = utilityTrnxnID;
@@ -141,11 +140,11 @@ public class BillingInformation {
         this.billType = billType;
     }
 
-    public LocalDateTime getIssueDate() {
+    public Date getIssueDate() {
         return issueDate;
     }
 
-    public void setIssueDate(LocalDateTime issueDate) {
+    public void setIssueDate(Date issueDate) {
         this.issueDate = issueDate;
     }
 
