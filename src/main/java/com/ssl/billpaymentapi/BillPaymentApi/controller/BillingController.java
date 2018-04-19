@@ -53,27 +53,75 @@ public class BillingController {
 
     @PostMapping(value = "/secured/singleBillInformation/")
     public Object findOneBillInformation(
-    @RequestBody JsonSend data){
+            @RequestBody JsonSend data){
 
-
-
-        Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    return billingRepository.findByBillNumber(data.getData().getParameters().getBillNumber());
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return response = new JsonType("Unsuccessful", "username is required");
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Access info is required");
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                }else{
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
                 }
+            }else{
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
             }
+
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+                                BillingInformation bill =  billingRepository.findByBillNumber(data.getData().getParameters().getBillNumber());
+                                if (bill == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                }else{
+                                    SingleBillInformation singleBillInformation =
+                                            new SingleBillInformation("Successful",bill.getId(),bill.getBillNumber(),bill.getBillAmount(),
+                                                    bill.getBillStatus().getMeaning(),bill.getCancelDate(),bill.getCancelled_by(),
+                                                    bill.getCustomerNumber(),bill.getDueAmount(),bill.getPaidAmount(),
+                                                    bill.getTotalAmount(),bill.getPaidBy(),bill.getVatAmount(),bill.getPayDate(),
+                                                    bill.getAckStatus(),bill.getBankTranxnID(),bill.getTranID());
+                                    return singleBillInformation;
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
         }
-
-
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return unSuccessJsonType;
+        return response;
     }
+
+
+
 
 
 
@@ -127,20 +175,63 @@ public class BillingController {
 
 
 
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    return jsonType;
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return response = new JsonType("Unsuccessful", "username is required");
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Access info is required");
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                }else{
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
                 }
+            }else{
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
             }
-        }
 
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return unSuccessJsonType;
+
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+
+                                if (jsonType == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                }else{
+                                    return jsonType;
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
+        }
+        return response;
     }
 
 
@@ -164,21 +255,63 @@ public class BillingController {
 
 
 
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    return Collections.singletonList(billingInformationUnpaidList);
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "username is required"));
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "password is required"));
+                        }
+                    }else{
+                        return Collections.singletonList(response = new JsonType("Unsuccessful", "Access info is required"));
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "billNumber is required"));
+                        }
+                    }else{
+                        return Collections.singletonList(response = new JsonType("Unsuccessful", "Parameters is required"));
+                    }
+                }else{
+                    return Collections.singletonList(response = new JsonType("Unsuccessful", "JSON data is not in correct format"));
                 }
+            }else{
+                return Collections.singletonList(response = new JsonType("Unsuccessful", "Request data is not in correct format"));
             }
-        }
 
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return Collections.singletonList(unSuccessJsonType);
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+
+                                if (billingInformationUnpaidList == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this Customer number");
+                                }else{
+                                    return Collections.singletonList(billingInformationUnpaidList);
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
+        }
+        return Collections.singletonList(response);
     }
 
     @PostMapping("/secured/cancelBillInformation/")
@@ -219,21 +352,63 @@ public class BillingController {
 
 
 
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    return jsonType;
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return response = new JsonType("Unsuccessful", "username is required");
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Access info is required");
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                }else{
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
                 }
+            }else{
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
             }
-        }
 
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return unSuccessJsonType;
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+
+                                if (jsonType == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                }else{
+                                    return jsonType;
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
+        }
+        return response;
     }
 
     @PostMapping(value = "/secured/currentDateBillInformation/")
@@ -241,61 +416,136 @@ public class BillingController {
             @RequestBody JsonSend data){
 
 
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    return Collections.singletonList(billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now())));
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "username is required"));
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "password is required"));
+                        }
+                    }else{
+                        return Collections.singletonList(response = new JsonType("Unsuccessful", "Access info is required"));
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "billNumber is required"));
+                        }
+                    }else{
+                        return Collections.singletonList(response = new JsonType("Unsuccessful", "Parameters is required"));
+                    }
+                }else{
+                    return Collections.singletonList(response = new JsonType("Unsuccessful", "JSON data is not in correct format"));
                 }
+            }else{
+                return Collections.singletonList(response = new JsonType("Unsuccessful", "Request data is not in correct format"));
             }
+
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+                                List<BillingInformation> bill =
+                                billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now()));
+                                if (bill == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                }else{
+                                    return Collections.singletonList(bill);
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
         }
-
-
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return Collections.singletonList(unSuccessJsonType);
+        return Collections.singletonList(response);
     }
 
     @PostMapping(value = "/secured/AcknowledgeApi/")
     public Object findAcKnowledgeStatus(
             @RequestBody JsonSend data ){
 
-
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                 BillingInformation billingInformation =
-                         billingRepository.findByBankTranxnIDAndTranID(
-                                 data.getData().getParameters().getBankTranxnID(),
-                                 data.getData().getParameters().getTranID()
-                         );
-                 if(billingInformation == null){
-                     JsonOneData unSuccessJsonType = new JsonOneData("NOT OK");
-                     return unSuccessJsonType;
-                 }
-
-                 else {
-
-                     JsonOneData unSuccessJsonType = new JsonOneData("OK");
-                     billingInformation.setAckStatus("Acknowledged");
-                     billingRepository.save(billingInformation);
-                     return unSuccessJsonType;
-                 }
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return response = new JsonType("Unsuccessful", "username is required");
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Access info is required");
+                    }
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                }else{
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
                 }
+            }else{
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
             }
+
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+                                BillingInformation billingInformation =
+                                        billingRepository.findByBankTranxnIDAndTranID(
+                                                data.getData().getParameters().getBankTranxnID(),
+                                                data.getData().getParameters().getTranID()
+                                        );
+                                if (billingInformation == null) {
+                                    response = new JsonType("Unsuccessful", "Not OK");
+                                }else{
+                                     response = new JsonType("Successful","OK");
+                                    billingInformation.setAckStatus("Acknowledged");
+                                    billingRepository.save(billingInformation);
+                                    return response;
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
         }
+        return response;
 
 
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return unSuccessJsonType;
     }
 
     @PostMapping(value = "/secured/callBackApi/")
@@ -312,32 +562,71 @@ public class BillingController {
         LocalDateTime localDateTime = LocalDateTime.now();
         long minutesBetween = ChronoUnit.MINUTES.between(localDateTime,paymentTime);
 
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
-                    {
-                        if (minutesBetween >= 15 &&
-                                billingInformation.getAckStatus().equals("Processing"))
-                            billingInformation.setAckStatus("Call back sent");
-                        billingRepository.save(billingInformation);
-                        JsonOneData successJsonType = new JsonOneData(
-                                "call Back send to client");
-                        return successJsonType;
+        JsonType response = new JsonType();
+        try {
+            if(data!=null){
+                if(data.getData()!=null){
+                    if(data.getData().getAccess_info()!=null) {
+                        if(data.getData().getAccess_info().getUsername()==null){
+                            return response = new JsonType("Unsuccessful", "username is required");
+                        }
+                        if(data.getData().getAccess_info().getPassword()==null){
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Access info is required");
                     }
-
+                    if(data.getData().getParameters()!=null) {
+                        if(data.getData().getParameters().getBillNumber()==null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        }
+                    }else{
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                }else{
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
                 }
-
+            }else{
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
             }
+
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
+
+                                if (billingInformation == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                }else{
+                                    if (minutesBetween >= 15 &&
+                                            billingInformation.getAckStatus().equals("Processing")){
+                                        billingInformation.setAckStatus("Call back sent");
+                                        billingRepository.save(billingInformation);
+                                        JsonOneData successJsonType = new JsonOneData(
+                                                "call Back send to client");
+                                        return successJsonType;
+                                    }
+
+                                }
+                            }else{
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
+                        }
+                    }
+                }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
+            }
+        }catch (Exception ex){
+            response = new JsonType("Unsuccessful", "Exception Occured");
         }
-
-
-            JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                    "username or password  is wrong and it is not stakeholder_api user");
-            return unSuccessJsonType;
+        return response;
         }
 
 
@@ -346,95 +635,134 @@ public class BillingController {
     public Object reconciliation(
            @RequestBody JsonSend data) {
 
-        Users  users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
-        Set<Roles> rolesSet =  users.getRolesSet();
-        List<BillingInformation> billingInformationSuccessList;
-        List<BillingInformation> billingInformationFailedList ;
-        for(Roles r: rolesSet){
-            if(r.getTitle().equals("stakeholder_api")){
-                if(passwordEncoder().matches(data.getData().getAccess_info().getPassword(),
-                        users.getPassword())&&
-                        data.getData().getAccess_info().getUsername().equals(users.getUserName())){
-                    if(data.getData().getParameters().getType().equals("summary")){
-                      List<BillingInformation>   billingInformationList =
-                                billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
-                     totalCount = billingInformationList.size();
-
-
-                      for(BillingInformation billingInformation:billingInformationList){
-                           totalAmount += billingInformation.getTotalAmount();
-                      }
-
-                    billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
-                            data.getData().getParameters().getDateTime(),BillingStatus.paid);
-
-                  totalSuccessCount =     billingInformationSuccessList.size();
-
-                   for (BillingInformation billingInformation:billingInformationSuccessList)  {
-                       totalSuccessAmount += billingInformation.getPaidAmount();
-                   }
-
-                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
-                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
-
-                        totalFailedCount =     billingInformationFailedList.size();
-
-                        for (BillingInformation billingInformation:billingInformationFailedList)  {
-                            totalFailedAmount += billingInformation.getTotalAmount();
+        List<BillingInformation>   billingInformationList =
+                billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
+        List <BillingInformation> billingInformationSuccessList;
+        List<BillingInformation> billingInformationFailedList;
+        JsonType response = new JsonType();
+        try {
+            if (data != null) {
+                if (data.getData() != null) {
+                    if (data.getData().getAccess_info() != null) {
+                        if (data.getData().getAccess_info().getUsername() == null) {
+                            return response = new JsonType("Unsuccessful", "username is required");
                         }
-
-
-
-                        JsonSummary summary = new JsonSummary(totalCount,totalAmount,
-                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
-                                totalFailedAmount);
-                      return  summary;
+                        if (data.getData().getAccess_info().getPassword() == null) {
+                            return response = new JsonType("Unsuccessful", "password is required");
+                        }
+                    } else {
+                        return response = new JsonType("Unsuccessful", "Access info is required");
                     }
-                    if(data.getData().getParameters().getType().equals("details")){
-                        List<BillingInformation>   billingInformationList =
-                                billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
-                        totalCount = billingInformationList.size();
-
-
-                        for(BillingInformation billingInformation:billingInformationList){
-                            totalAmount += billingInformation.getTotalAmount();
+                    if (data.getData().getParameters() != null) {
+                        if (data.getData().getParameters().getBillNumber() == null) {
+                            return response = new JsonType("Unsuccessful", "billNumber is required");
                         }
+                    } else {
+                        return response = new JsonType("Unsuccessful", "Parameters is required");
+                    }
+                } else {
+                    return response = new JsonType("Unsuccessful", "JSON data is not in correct format");
+                }
+            } else {
+                return response = new JsonType("Unsuccessful", "Request data is not in correct format");
+            }
 
-                        billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
-                                data.getData().getParameters().getDateTime(),BillingStatus.paid);
+            Users users = usersRepository.findByUserName(data.getData().getAccess_info().getUsername());
+            if (users != null) {
+                Set<Roles> rolesSet = users.getRolesSet();
+                if (rolesSet != null) {
+                    for (Roles r : rolesSet) {
+                        if (r.getTitle().equals("stakeholder_api")) {
+                            if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
+                                    && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
 
-                        totalSuccessCount =     billingInformationSuccessList.size();
+                                if (billingInformationList == null) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                } else {
+                                    if(data.getData().getParameters().getType().equals("summary")){
 
-                        for (BillingInformation billingInformation:billingInformationSuccessList)  {
-                            totalSuccessAmount += billingInformation.getPaidAmount();
+                                        totalCount = billingInformationList.size();
+
+
+                                        for(BillingInformation billingInformation:billingInformationList){
+                                            totalAmount += billingInformation.getTotalAmount();
+                                        }
+
+                                        billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
+                                                data.getData().getParameters().getDateTime(),BillingStatus.paid);
+
+                                        totalSuccessCount =     billingInformationSuccessList.size();
+
+                                        for (BillingInformation billingInformation:billingInformationSuccessList)  {
+                                            totalSuccessAmount += billingInformation.getPaidAmount();
+                                        }
+
+                                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
+                                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
+
+                                        totalFailedCount =     billingInformationFailedList.size();
+
+                                        for (BillingInformation billingInformation:billingInformationFailedList)  {
+                                            totalFailedAmount += billingInformation.getTotalAmount();
+                                        }
+
+
+
+                                        JsonSummary summary = new JsonSummary(totalCount,totalAmount,
+                                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
+                                                totalFailedAmount);
+                                        return  summary;
+                                    }
+                                    if(data.getData().getParameters().getType().equals("details")){
+
+                                        totalCount = billingInformationList.size();
+
+
+                                        for(BillingInformation billingInformation:billingInformationList){
+                                            totalAmount += billingInformation.getTotalAmount();
+                                        }
+
+                                        billingInformationSuccessList = billingRepository.findAllByIssueDateAndBillStatus(
+                                                data.getData().getParameters().getDateTime(),BillingStatus.paid);
+
+                                        totalSuccessCount =     billingInformationSuccessList.size();
+
+                                        for (BillingInformation billingInformation:billingInformationSuccessList)  {
+                                            totalSuccessAmount += billingInformation.getPaidAmount();
+                                        }
+
+                                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
+                                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
+
+                                        totalFailedCount =     billingInformationFailedList.size();
+
+                                        for (BillingInformation billingInformation:billingInformationFailedList)  {
+                                            totalFailedAmount += billingInformation.getTotalAmount();
+                                        }
+
+
+
+                                        JsonDetails details = new JsonDetails(totalCount,totalAmount,
+                                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
+                                                totalFailedAmount,billingInformationList);
+                                        return  details;
+                                    }
+                                }
+                            } else {
+                                response = new JsonType("Unsuccessful", "User credentials are not correct");
+                            }
+                        } else {
+                            response = new JsonType("Unsuccessful", "Not a valid API user");
                         }
-
-                        billingInformationFailedList = billingRepository.findAllByIssueDateAndBillStatus(
-                                data.getData().getParameters().getDateTime(),BillingStatus.Failed);
-
-                        totalFailedCount =     billingInformationFailedList.size();
-
-                        for (BillingInformation billingInformation:billingInformationFailedList)  {
-                            totalFailedAmount += billingInformation.getTotalAmount();
-                        }
-
-
-
-                        JsonDetails details = new JsonDetails(totalCount,totalAmount,
-                                totalSuccessCount,totalSuccessAmount,totalFailedCount,
-                                totalFailedAmount,billingInformationList);
-                        return  details;
                     }
                 }
+            } else {
+                response = new JsonType("Unsuccessful", "User Not Found");
             }
+        } catch (Exception ex) {
+            response = new JsonType("Unsuccessful", "Exception Occured");
         }
-
-
-        JsonType unSuccessJsonType = new JsonType("Unsuccessful",
-                "username or password  is wrong and it is not stakeholder_api user");
-        return unSuccessJsonType;
-
-
+        return response;
     }
 
 
