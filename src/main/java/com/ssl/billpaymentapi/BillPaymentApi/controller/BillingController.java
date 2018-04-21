@@ -12,8 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -37,9 +36,7 @@ public class BillingController {
     @Autowired
     StakeholderRepository stakeholderRepository;
 
-    Float totalAmount = 0.0f;
-    Float totalSuccessAmount = 0.0f;
-    Float totalFailedAmount = 0.0f;
+
 
     int totalCount,totalSuccessCount,totalFailedCount;
 
@@ -190,8 +187,11 @@ public class BillingController {
                         return response = new JsonType("Unsuccessful", "Access info is required");
                     }
                     if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        if(data.getData().getParameters().getBillNumber()==null &&
+                                data.getData().getParameters().getBillAmount() == null &&
+                                data.getData().getParameters().getTranID() == null) {
+                            return response = new JsonType("Unsuccessful", "billNumber , billAmount and" +
+                                    " tranID is required");
                         }
                     }else{
                         return response = new JsonType("Unsuccessful", "Parameters is required");
@@ -270,8 +270,8 @@ public class BillingController {
                         return Collections.singletonList(response = new JsonType("Unsuccessful", "Access info is required"));
                     }
                     if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return Collections.singletonList(response = new JsonType("Unsuccessful", "billNumber is required"));
+                        if(data.getData().getParameters().getCustomerNumber()==null) {
+                            return Collections.singletonList(response = new JsonType("Unsuccessful", "customerNumber is required"));
                         }
                     }else{
                         return Collections.singletonList(response = new JsonType("Unsuccessful", "Parameters is required"));
@@ -292,7 +292,7 @@ public class BillingController {
                             if (passwordEncoder().matches(data.getData().getAccess_info().getPassword(), users.getPassword())
                                     && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
 
-                                if (billingInformationUnpaidList == null) {
+                                if (billingInformationUnpaidList.size() == 0) {
                                     response = new JsonType("Unsuccessful", "No Data found Against this Customer number");
                                 }else{
                                     return Collections.singletonList(billingInformationUnpaidList);
@@ -322,6 +322,9 @@ public class BillingController {
                 findByBillNumber(data.getData().getParameters().getBillNumber());
         Float due_amount = billingInformation.getTotalAmount();
 
+        Date paymentdate = Date.valueOf(billingInformation.getPayDate().toLocalDate());
+        Date currentdate = Date.valueOf(LocalDate.now());
+
         try {
             billingInformation.setRemarks(data.getData().getParameters().getCancelRemarks());
             billingInformation.setPaidAmount(0);
@@ -330,7 +333,7 @@ public class BillingController {
             billingInformation.setDueAmount(due_amount);
             billingInformation.setCancelled_by(data.getData().getAccess_info().getUsername());
 
-            if (billingInformation.getPayDate().equals(Date.valueOf(LocalDate.now())))
+            if (paymentdate.equals(currentdate))
                 billingRepository.save(billingInformation);
 
             else {
@@ -367,8 +370,9 @@ public class BillingController {
                         return response = new JsonType("Unsuccessful", "Access info is required");
                     }
                     if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        if(data.getData().getParameters().getBillNumber()==null
+                                && data.getData().getParameters().getCancelRemarks() == null) {
+                            return response = new JsonType("Unsuccessful", "billNumber and cancel remarks is required");
                         }
                     }else{
                         return response = new JsonType("Unsuccessful", "Parameters is required");
@@ -430,13 +434,7 @@ public class BillingController {
                     }else{
                         return Collections.singletonList(response = new JsonType("Unsuccessful", "Access info is required"));
                     }
-                    if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return Collections.singletonList(response = new JsonType("Unsuccessful", "billNumber is required"));
-                        }
-                    }else{
-                        return Collections.singletonList(response = new JsonType("Unsuccessful", "Parameters is required"));
-                    }
+
                 }else{
                     return Collections.singletonList(response = new JsonType("Unsuccessful", "JSON data is not in correct format"));
                 }
@@ -454,8 +452,8 @@ public class BillingController {
                                     && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
                                 List<BillingInformation> bill =
                                 billingRepository.findAllByIssueDate(Date.valueOf(LocalDate.now()));
-                                if (bill == null) {
-                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                if (bill.size() == 0) {
+                                    response = new JsonType("Unsuccessful", "No Data found Against the current date");
                                 }else{
                                     return Collections.singletonList(bill);
                                 }
@@ -476,7 +474,7 @@ public class BillingController {
         return Collections.singletonList(response);
     }
 
-    @PostMapping(value = "/secured/AcknowledgeApi/")
+    @PostMapping(value = "/secured/acknowledgeApi/")
     public Object findAcKnowledgeStatus(
             @RequestBody JsonSend data ){
 
@@ -495,8 +493,9 @@ public class BillingController {
                         return response = new JsonType("Unsuccessful", "Access info is required");
                     }
                     if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        if(data.getData().getParameters().getBankTranxnID()==null
+                                && data.getData().getParameters().getTranID() == null) {
+                            return response = new JsonType("Unsuccessful", " BanktranxnId and tranId  is required");
                         }
                     }else{
                         return response = new JsonType("Unsuccessful", "Parameters is required");
@@ -577,8 +576,9 @@ public class BillingController {
                         return response = new JsonType("Unsuccessful", "Access info is required");
                     }
                     if(data.getData().getParameters()!=null) {
-                        if(data.getData().getParameters().getBillNumber()==null) {
-                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        if(data.getData().getParameters().getBankTranxnID()==null
+                                && data.getData().getParameters().getTranID() == null) {
+                            return response = new JsonType("Unsuccessful", " BanktranxnId and tranId  is required");
                         }
                     }else{
                         return response = new JsonType("Unsuccessful", "Parameters is required");
@@ -600,7 +600,7 @@ public class BillingController {
                                     && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
 
                                 if (billingInformation == null) {
-                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                    response = new JsonType("Unsuccessful", "No Data found Against this banktranxnID and tranID");
                                 }else{
                                     if (minutesBetween >= 15 &&
                                             billingInformation.getAckStatus().equals("Processing")){
@@ -609,6 +609,10 @@ public class BillingController {
                                         JsonOneData successJsonType = new JsonOneData(
                                                 "call Back send to client");
                                         return successJsonType;
+                                    }
+
+                                    else {
+                                        response = new JsonType("Successful", "it is already checked");
                                     }
 
                                 }
@@ -631,9 +635,12 @@ public class BillingController {
 
 
 
-    @PostMapping(value = "/secured/Reconciliationapi/")
+    @PostMapping(value = "/secured/reconciliationApi/")
     public Object reconciliation(
            @RequestBody JsonSend data) {
+        Float totalAmount = 0.0f;
+        Float totalSuccessAmount = 0.0f;
+        Float totalFailedAmount = 0.0f;
 
         List<BillingInformation>   billingInformationList =
                 billingRepository.findAllByIssueDate(data.getData().getParameters().getDateTime());
@@ -654,8 +661,9 @@ public class BillingController {
                         return response = new JsonType("Unsuccessful", "Access info is required");
                     }
                     if (data.getData().getParameters() != null) {
-                        if (data.getData().getParameters().getBillNumber() == null) {
-                            return response = new JsonType("Unsuccessful", "billNumber is required");
+                        if (data.getData().getParameters().getDateTime() == null
+                                && data.getData().getParameters().getType() == null) {
+                            return response = new JsonType("Unsuccessful", "date and type is required");
                         }
                     } else {
                         return response = new JsonType("Unsuccessful", "Parameters is required");
@@ -677,7 +685,7 @@ public class BillingController {
                                     && data.getData().getAccess_info().getUsername().equals(users.getUserName())) {
 
                                 if (billingInformationList == null) {
-                                    response = new JsonType("Unsuccessful", "No Data found Against this bill number");
+                                    response = new JsonType("Unsuccessful", "No Data found Against this date");
                                 } else {
                                     if(data.getData().getParameters().getType().equals("summary")){
 

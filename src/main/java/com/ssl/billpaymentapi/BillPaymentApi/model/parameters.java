@@ -1,6 +1,5 @@
 package com.ssl.billpaymentapi.BillPaymentApi.model;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 public class parameters {
